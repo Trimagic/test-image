@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { LoaderIcon } from "lucide-react"
 import FormData from "form-data"
+import { mediaParams } from "./api/media-v2/param"
 
 const FileUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -45,102 +46,112 @@ const FileUpload: React.FC = () => {
     const formData = new FormData()
     formData.append("file", file)
 
-    const params = {
-      params: [
-        { format: "webp", width: 1067, height: 600, quality: 60 },
-        { format: "webp", width: 533, height: 300, quality: 30 },
-        { format: "webp", width: 356, height: 200, quality: 20 },
-        { format: "webp", width: 178, height: 100, quality: 10 },
-        { format: "png", width: 533, height: 300, quality: 60 },
-      ],
-    }
+    // const params = {
+    //   params: [
+    //     { format: "webp", width: 1067, height: 600, quality: 60 },
+    //     { format: "webp", width: 533, height: 300, quality: 30 },
+    //     { format: "webp", width: 356, height: 200, quality: 20 },
+    //     { format: "webp", width: 178, height: 100, quality: 10 },
+    //     { format: "png", width: 533, height: 300, quality: 60 },
+    //   ],
+    // }
 
-    formData.append("params", new Blob([JSON.stringify(params)], { type: "application/json" }))
+    formData.append("params", new Blob([JSON.stringify(mediaParams)], { type: "application/json" }))
 
     try {
-      const response = await axios.post(
+      const initial = await axios.post(
         "https://image-converter-one.vercel.app/api/handler",
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       )
 
-      if (response.status === 200) {
-        const contentType = response.headers["content-type"]
-        const boundary = contentType.split("boundary=")[1]
+      const forward = await axios.post("/api/media-v2", initial.data, {
+        headers: {
+          "Content-Type": initial.headers["content-type"],
+        },
+      })
 
-        const parts = response.data
-          .split(`--${boundary}`)
-          .filter((part: string) => part.includes("Content-Disposition"))
+      // if (false) {
+      //   //response.status === 200
+      //   const contentType = response.headers["content-type"]
+      //   const boundary = contentType.split("boundary=")[1]
 
-        const images = parts
-          .map((part: string) => {
-            const [headers, body] = part.split("\r\n\r\n")
-            const mimeTypeMatch = headers.match(/Content-Type: (.+)/)
+      //   const parts = response.data
+      //     .split(`--${boundary}`)
+      //     .filter((part: string) => part.includes("Content-Disposition"))
 
-            if (mimeTypeMatch) {
-              const mimeType = mimeTypeMatch[1]
-              const byteString = atob(body.trim())
-              const byteArray = Uint8Array.from(byteString, (char) => char.charCodeAt(0))
-              const blob = new Blob([byteArray], { type: mimeType })
-              const receivedUrl = URL.createObjectURL(blob)
-              const receivedFormat = mimeType.split("/")[1].toUpperCase()
-              const receivedSize = (blob.size / 1024).toFixed(2) + " KB"
+      //   const images = parts
+      //     .map((part: string) => {
+      //       const [headers, body] = part.split("\r\n\r\n")
+      //       const mimeTypeMatch = headers.match(/Content-Type: (.+)/)
 
-              return { blob, info: { format: receivedFormat, size: receivedSize } }
-            }
-            return null
-          })
-          .filter(Boolean) as { blob: Blob; info: { format: string; size: string } }[]
+      //       if (mimeTypeMatch) {
+      //         const mimeType = mimeTypeMatch[1]
+      //         const byteString = atob(body.trim())
+      //         const byteArray = Uint8Array.from(byteString, (char) => char.charCodeAt(0))
+      //         const blob = new Blob([byteArray], { type: mimeType })
+      //         const receivedUrl = URL.createObjectURL(blob)
+      //         const receivedFormat = mimeType.split("/")[1].toUpperCase()
+      //         const receivedSize = (blob.size / 1024).toFixed(2) + " KB"
 
-        // Create an array of fetch promises
-        const uploadPromises = images.map((image) => {
-          const uploadData = new FormData()
-          uploadData.append("file", image.blob, `image.${image.info.format.toLowerCase()}`)
+      //         return { blob, info: { format: receivedFormat, size: receivedSize } }
+      //       }
+      //       return null
+      //     })
+      //     .filter(Boolean) as { blob: Blob; info: { format: string; size: string } }[]
 
-          // Determine size category
-          const sizeInKB = parseFloat(image.info.size)
-          let sizeCategory
-          if (sizeInKB <= 5) {
-            sizeCategory = "low"
-          } else if (sizeInKB <= 10) {
-            sizeCategory = "low-mid"
-          } else if (sizeInKB <= 30) {
-            sizeCategory = "middle"
-          } else if (sizeInKB <= 60) {
-            sizeCategory = "high"
-          } else {
-            sizeCategory = "none"
-          }
+      //   // Create an array of fetch promises
+      //   const uploadPromises = images.map((image) => {
+      //     const uploadData = new FormData()
+      //     uploadData.append("file", image.blob, `image.${image.info.format.toLowerCase()}`)
 
-          // Construct query parameters
-          const queryParams = new URLSearchParams({
-            format: image.info.format.toLowerCase(),
-            size: sizeCategory,
-            id_media: Math.random().toString(16),
-          })
+      //     // Determine size category
+      //     const sizeInKB = parseFloat(image.info.size)
+      //     let sizeCategory
+      //     if (sizeInKB <= 5) {
+      //       sizeCategory = "low"
+      //     } else if (sizeInKB <= 10) {
+      //       sizeCategory = "low-mid"
+      //     } else if (sizeInKB <= 30) {
+      //       sizeCategory = "middle"
+      //     } else if (sizeInKB <= 60) {
+      //       sizeCategory = "high"
+      //     } else {
+      //       sizeCategory = "none"
+      //     }
 
-          return fetch(`/api/media?${queryParams.toString()}`, {
-            method: "POST",
-            ///@ts-ignore
-            body: uploadData,
-          })
-        })
+      //     // Construct query parameters
+      //     const queryParams = new URLSearchParams({
+      //       format: image.info.format.toLowerCase(),
+      //       size: sizeCategory,
+      //       id_media: Math.random().toString(16),
+      //     })
 
-        // Wait for all uploads to finish
-        await Promise.all(uploadPromises)
+      //     return fetch(`/api/media?${queryParams.toString()}`, {
+      //       method: "POST",
+      //       ///@ts-ignore
+      //       body: uploadData,
+      //     })
+      //   })
 
-        setReceivedImages(
-          images.map((image) => {
-            const receivedUrl = URL.createObjectURL(image.blob)
-            return { src: receivedUrl, info: image.info }
-          })
-        )
-      } else {
-        setError("Сервер вернул ошибку")
-      }
+      //   // Wait for all uploads to finish
+      //   await Promise.all(uploadPromises)
+
+      //   setReceivedImages(
+      //     images.map((image) => {
+      //       const receivedUrl = URL.createObjectURL(image.blob)
+      //       return { src: receivedUrl, info: image.info }
+      //     })
+      //   )
+      // } else {
+      //   setError("Сервер вернул ошибку")
+      // }
     } catch (err) {
+      console.log(err)
       setError("Ошибка при загрузке файла")
     } finally {
       setLoading(false)
