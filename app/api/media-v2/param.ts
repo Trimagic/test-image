@@ -1,4 +1,4 @@
-type TypeMediaSize = "high" | "mid" | "low" | "small" | "png"
+export type TypeMediaSize = "high" | "mid" | "low" | "small" | "png"
 
 export const mediaParams: {
   params: Array<{

@@ -57,8 +57,5 @@ export async function POST(request: Request) {
   // Log the sizes of the files
   console.log(images)
 
-  return new Response(JSON.stringify({ message: "Files processed", files: images }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  })
+  return Response.json({ path })
 }

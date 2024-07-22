@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { LoaderIcon } from "lucide-react"
 import FormData from "form-data"
 import { mediaParams } from "./api/media-v2/param"
+import { ImageR2 } from "./image"
 
 const FileUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null)
@@ -16,6 +17,8 @@ const FileUpload: React.FC = () => {
   >([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+
+  const [paths, setPath] = useState<{ path: string; size: string }[]>([])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0]
@@ -75,81 +78,13 @@ const FileUpload: React.FC = () => {
         },
       })
 
-      // if (false) {
-      //   //response.status === 200
-      //   const contentType = response.headers["content-type"]
-      //   const boundary = contentType.split("boundary=")[1]
-
-      //   const parts = response.data
-      //     .split(`--${boundary}`)
-      //     .filter((part: string) => part.includes("Content-Disposition"))
-
-      //   const images = parts
-      //     .map((part: string) => {
-      //       const [headers, body] = part.split("\r\n\r\n")
-      //       const mimeTypeMatch = headers.match(/Content-Type: (.+)/)
-
-      //       if (mimeTypeMatch) {
-      //         const mimeType = mimeTypeMatch[1]
-      //         const byteString = atob(body.trim())
-      //         const byteArray = Uint8Array.from(byteString, (char) => char.charCodeAt(0))
-      //         const blob = new Blob([byteArray], { type: mimeType })
-      //         const receivedUrl = URL.createObjectURL(blob)
-      //         const receivedFormat = mimeType.split("/")[1].toUpperCase()
-      //         const receivedSize = (blob.size / 1024).toFixed(2) + " KB"
-
-      //         return { blob, info: { format: receivedFormat, size: receivedSize } }
-      //       }
-      //       return null
-      //     })
-      //     .filter(Boolean) as { blob: Blob; info: { format: string; size: string } }[]
-
-      //   // Create an array of fetch promises
-      //   const uploadPromises = images.map((image) => {
-      //     const uploadData = new FormData()
-      //     uploadData.append("file", image.blob, `image.${image.info.format.toLowerCase()}`)
-
-      //     // Determine size category
-      //     const sizeInKB = parseFloat(image.info.size)
-      //     let sizeCategory
-      //     if (sizeInKB <= 5) {
-      //       sizeCategory = "low"
-      //     } else if (sizeInKB <= 10) {
-      //       sizeCategory = "low-mid"
-      //     } else if (sizeInKB <= 30) {
-      //       sizeCategory = "middle"
-      //     } else if (sizeInKB <= 60) {
-      //       sizeCategory = "high"
-      //     } else {
-      //       sizeCategory = "none"
-      //     }
-
-      //     // Construct query parameters
-      //     const queryParams = new URLSearchParams({
-      //       format: image.info.format.toLowerCase(),
-      //       size: sizeCategory,
-      //       id_media: Math.random().toString(16),
-      //     })
-
-      //     return fetch(`/api/media?${queryParams.toString()}`, {
-      //       method: "POST",
-      //       ///@ts-ignore
-      //       body: uploadData,
-      //     })
-      //   })
-
-      //   // Wait for all uploads to finish
-      //   await Promise.all(uploadPromises)
-
-      //   setReceivedImages(
-      //     images.map((image) => {
-      //       const receivedUrl = URL.createObjectURL(image.blob)
-      //       return { src: receivedUrl, info: image.info }
-      //     })
-      //   )
-      // } else {
-      //   setError("Сервер вернул ошибку")
-      // }
+      setPath(
+        Object.values(mediaParams.params).map(({ type }) => ({
+          path: forward.data.path,
+          size: type,
+        }))
+      )
+      console.log(forward.data.path)
     } catch (err) {
       console.log(err)
       setError("Ошибка при загрузке файла")
@@ -183,16 +118,17 @@ const FileUpload: React.FC = () => {
             </div>
           )}
         </div>
-        {receivedImages.map((img, index) => (
+        {paths.map(({ path, size }, index) => (
           <div key={index} className="flex-1">
             <h2 className="text-lg font-bold text-center">Компрессия {index + 1}</h2>
-            <p className="text-center">
+            {/* <p className="text-center">
               Формат: {img.info.format}, Размер: {img.info.size}
-            </p>
-            <img
+            </p> */}
+            <ImageR2
               className="w-full h-auto rounded-md"
-              src={img.src}
-              alt={`Received File ${index + 1}`}
+              src={path}
+              size={size as any}
+              // alt={`Received File ${index + 1}`}
             />
           </div>
         ))}
