@@ -17,8 +17,8 @@ export async function POST(request: Request) {
 
   const parts = body.split(`--${boundary}`).filter((part) => part.includes("Content-Disposition"))
   const path = v4()
-  const images = parts
-    .map(async (part) => {
+  const images = await Promise.all(
+    parts.map(async (part) => {
       const [headers, bodyContent] = part.split("\r\n\r\n")
       const mimeTypeMatch = headers.match(/Content-Type: (.+)/)
       const fileNameMatch = headers.match(/name="(.+?)"/)
@@ -38,27 +38,27 @@ export async function POST(request: Request) {
             contentType: mimeType,
           },
         })
-        return {
-          blob,
-          info: {
-            format: mimeType.split("/")[1].toUpperCase(),
-            size: receivedSize,
-            name: fileName,
-          },
-        }
+
+        return `${path}/${mapMediaParams[fileName]}`
+        // return {
+        //   blob,
+        //   info: {
+        //     format: mimeType.split("/")[1].toUpperCase(),
+        //     size: receivedSize,
+        //     name: fileName,
+        //   },
+        // }
       }
       return null
     })
-    .filter(Boolean)
+  )
 
   console.log("REMDER")
   // Log the sizes of the files
-  // images.forEach((image) => {
-  //   console.log(image)
-  // })
+  console.log(images)
 
-  return new Response(
-    JSON.stringify({ message: "Files processed", files: images.map((image) => image) }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  )
+  return new Response(JSON.stringify({ message: "Files processed", files: images }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  })
 }
