@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   const url = new URL(request.url)
   const idMedia = url.searchParams.get("id_media")
   const sizeParam = url.searchParams.get("size")
-  const formatParam = url.searchParams.get("type")
+  const formatParam = url.searchParams.get("format")
 
   if (!idMedia || !sizeParam || !formatParam) {
     console.error("Missing parameters:", { idMedia, sizeParam, formatParam })
@@ -42,15 +42,16 @@ export async function POST(request: Request) {
   const fileSize = (byteArray.length / 1024).toFixed(2) + " KB"
 
   // Загрузка файла в R2
-  const filePath = `${idMedia}/${formatParam}/${sizeParam}.webp`
-  console.log(await env.BUCKET.list())
+  const filePath = `${idMedia}/${formatParam}/${sizeParam}`
+
   try {
-    await env.BUCKET.put(filePath, file, {
-      storageClass: "dsa",
+    console.log("Uploading to R2:", { filePath, mimeType, fileSize })
+    await env.BUCKET.put(filePath, byteArray, {
       httpMetadata: {
         contentType: mimeType,
       },
     })
+    console.log("Upload to R2 successful")
   } catch (error) {
     console.error("Error uploading to R2:", error)
     return new Response(JSON.stringify({ error: "Error uploading to R2" }), {
