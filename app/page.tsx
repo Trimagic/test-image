@@ -72,10 +72,10 @@ const FileUpload: React.FC = () => {
 
         const parts = response.data
           .split(`--${boundary}`)
-          .filter((part) => part.includes("Content-Disposition"))
+          .filter((part: string) => part.includes("Content-Disposition"))
 
         const images = parts
-          .map((part) => {
+          .map((part: string) => {
             const [headers, body] = part.split("\r\n\r\n")
             const mimeTypeMatch = headers.match(/Content-Type: (.+)/)
 
@@ -123,6 +123,7 @@ const FileUpload: React.FC = () => {
 
           return fetch(`/api/media?${queryParams.toString()}`, {
             method: "POST",
+            ///@ts-ignore
             body: uploadData,
           })
         })
