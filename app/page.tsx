@@ -116,7 +116,7 @@ const FileUpload: React.FC = () => {
 
           // Construct query parameters
           const queryParams = new URLSearchParams({
-            type: image.info.format.toLowerCase(),
+            format: image.info.format.toLowerCase(),
             size: sizeCategory,
             id_media: Math.random().toString(16),
           })
