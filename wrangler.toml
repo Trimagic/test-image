@@ -56,7 +56,7 @@ pages_build_output_dir = ".vercel/output/static"
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#r2-buckets
 [[r2_buckets]]
 binding = "BUCKET"
-bucket_name = "test"
+bucket_name = "dating-media"
 
 # Bind another Worker service. Use this binding to call another Worker without network overhead.
 # Docs: https://developers.cloudflare.com/pages/functions/bindings/#service-bindings
