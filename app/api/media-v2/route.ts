@@ -40,22 +40,10 @@ export async function POST(request: Request) {
         })
 
         return `${path}/${mapMediaParams[fileName]}`
-        // return {
-        //   blob,
-        //   info: {
-        //     format: mimeType.split("/")[1].toUpperCase(),
-        //     size: receivedSize,
-        //     name: fileName,
-        //   },
-        // }
       }
       return null
     })
   )
-
-  console.log("REMDER")
-  // Log the sizes of the files
-  console.log(images)
 
   return Response.json({ path })
 }

@@ -133,6 +133,12 @@ const FileUpload: React.FC = () => {
           </div>
         ))}
       </div>
+      <Button
+        onClick={async () => await fetch("/api/delete")}
+        className="h-16 text-3xl text-neutral-700 mt-5"
+      >
+        Удалить
+      </Button>
     </div>
   )
 }
